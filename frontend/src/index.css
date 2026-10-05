@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4;
+  }
+  .input {
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+}
+
+/* Severity colors */
+.severity-1 { @apply bg-green-100 text-green-800; }
+.severity-2 { @apply bg-lime-100 text-lime-800; }
+.severity-3 { @apply bg-amber-100 text-amber-800; }
+.severity-4 { @apply bg-orange-100 text-orange-800; }
+.severity-5 { @apply bg-red-100 text-red-800; }
+
+/* Status colors */
+.status-reported       { @apply bg-blue-100 text-blue-800; }
+.status-assigned       { @apply bg-purple-100 text-purple-800; }
+.status-in_progress    { @apply bg-yellow-100 text-yellow-800; }
+.status-pending_confirmation { @apply bg-orange-100 text-orange-800; }
+.status-resolved       { @apply bg-green-100 text-green-800; }
+.status-reopened       { @apply bg-red-100 text-red-800; }
+
+/* Skeleton loader animation */
+.skeleton {
+  @apply bg-gray-200 rounded animate-pulse;
+}

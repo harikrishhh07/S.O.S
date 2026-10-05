@@ -1,0 +1,32 @@
+# Environment / secrets
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+backend/venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Uploads
+backend/uploads/
+
+# Kiro internal
+.kiro/
+
+# OS
+.DS_Store
+*.log
+nohup.out
