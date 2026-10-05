@@ -185,3 +185,15 @@ SOS/
 ├── docker-compose.yml
 └── .env.example
 ```
+
+---
+
+## Contributors
+
+| Avatar | Name | GitHub | Role |
+|--------|------|--------|------|
+| <img src="https://github.com/harikrishhh07.png" width="48" height="48" style="border-radius:50%"> | **E. Harikrishna** | [@harikrishhh07](https://github.com/harikrishhh07) | Creator & Full-Stack Developer |
+
+---
+
+> Built as part of an Applied Generative AI course project.
