@@ -1,214 +1,195 @@
 """
-Seed script: creates admin, 3 authorities, 5 students,
-12 campus locations, and 25 realistic sample reports.
-Run from /backend: python seed.py
-"""
-import os
-import sys
-import json
-import random
-from datetime import datetime, timedelta
+seed.py — Initialises the S.O.S. database with:
+  • 1 Admin account
+  • 3 Authority accounts (Electrical, Civil/Maintenance, Security)
+  • 66 real SRM KTR campus buildings (with plinth areas + criticality)
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+No fake reports or demo student data are seeded.
+Run: python seed.py
+"""
+import sys
+import os
+
+# Make sure app package is importable
+sys.path.insert(0, os.path.dirname(__file__))
 
 from app.database import SessionLocal, engine, Base
-from app.models import User, Report, Hype, StatusLog, Location, Notification, UserRole, ReportStatus
-from app.routers.auth import hash_password
-from app.services.priority_engine import compute_priority
+from app.models import User, Location, UserRole
+from app.core.config import get_settings
+from passlib.context import CryptContext
 
-Base.metadata.create_all(bind=engine)
-db = SessionLocal()
+settings = get_settings()
+pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ── Wipe existing data ────────────────────────────────────────────────────────
-db.query(Notification).delete()
-db.query(StatusLog).delete()
-db.query(Hype).delete()
-db.query(Report).delete()
-db.query(Location).delete()
-db.query(User).delete()
-db.commit()
-print("Cleared existing data.")
 
-# ── Locations ─────────────────────────────────────────────────────────────────
-locations_data = [
-    ("Main Library", "Ground Floor", 3),
-    ("Main Library", "First Floor", 3),
-    ("Engineering Block A", "Lab Wing", 5),
-    ("Engineering Block B", "Corridor", 4),
-    ("Hostel Block 1", "Common Room", 4),
-    ("Hostel Block 2", "Stairwell", 5),
-    ("Canteen", "Main Hall", 3),
-    ("Sports Complex", "Gym", 2),
-    ("Admin Building", "Reception", 3),
-    ("Science Block", "Chemistry Lab", 5),
-    ("Parking Lot", "North Entrance", 2),
-    ("Medical Centre", "Waiting Area", 4),
-]
-locs = []
-for building, zone, criticality in locations_data:
-    loc = Location(building=building, zone=zone, criticality=criticality)
-    db.add(loc)
-    locs.append(loc)
-db.commit()
-print(f"Created {len(locs)} locations.")
+def hash_pw(pw: str) -> str:
+    return pwd_ctx.hash(pw)
 
-# ── Users ─────────────────────────────────────────────────────────────────────
-admin = User(
-    name="Admin Singh", email="admin@university.edu",
-    password_hash=hash_password("admin123"),
-    role=UserRole.admin, department=None,
-)
-db.add(admin)
 
-authorities = [
-    User(name="Raj Electrical", email="raj.elec@university.edu",
-         password_hash=hash_password("auth123"), role=UserRole.authority, department="Electrical"),
-    User(name="Priya Civil", email="priya.civil@university.edu",
-         password_hash=hash_password("auth123"), role=UserRole.authority, department="Civil"),
-    User(name="Suresh Security", email="suresh.sec@university.edu",
-         password_hash=hash_password("auth123"), role=UserRole.authority, department="Security"),
-]
-for a in authorities:
-    db.add(a)
+def seed():
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
 
-students = [
-    User(name="Arjun Kumar", email="arjun@student.edu", password_hash=hash_password("student123"), role=UserRole.student),
-    User(name="Sneha Reddy", email="sneha@student.edu", password_hash=hash_password("student123"), role=UserRole.student),
-    User(name="Vikram Nair", email="vikram@student.edu", password_hash=hash_password("student123"), role=UserRole.student),
-    User(name="Meera Sharma", email="meera@student.edu", password_hash=hash_password("student123"), role=UserRole.student),
-    User(name="Dev Patel", email="dev@student.edu", password_hash=hash_password("student123"), role=UserRole.student),
-]
-for s in students:
-    db.add(s)
+    # ── Admin + Authority accounts ────────────────────────────────────────────
+    accounts = [
+        {
+            "name": "Admin",
+            "email": "admin@university.edu",
+            "password": "admin123",
+            "role": UserRole.admin,
+            "department": None,
+        },
+        {
+            "name": "Electrical Authority",
+            "email": "electrical@university.edu",
+            "password": "auth123",
+            "role": UserRole.authority,
+            "department": "Electrical",
+        },
+        {
+            "name": "Civil Authority",
+            "email": "civil@university.edu",
+            "password": "auth123",
+            "role": UserRole.authority,
+            "department": "Civil/Maintenance",
+        },
+        {
+            "name": "Security Authority",
+            "email": "security@university.edu",
+            "password": "auth123",
+            "role": UserRole.authority,
+            "department": "Security",
+        },
+        {
+            "name": "Demo Student",
+            "email": "student@university.edu",
+            "password": "student123",
+            "role": UserRole.student,
+            "department": None,
+        },
+    ]
 
-db.commit()
-db.refresh(admin)
-for a in authorities:
-    db.refresh(a)
-for s in students:
-    db.refresh(s)
-print(f"Created 1 admin, {len(authorities)} authorities, {len(students)} students.")
+    for acc in accounts:
+        if not db.query(User).filter(User.email == acc["email"]).first():
+            db.add(User(
+                name=acc["name"],
+                email=acc["email"],
+                password_hash=hash_pw(acc["password"]),
+                role=acc["role"],
+                department=acc["department"],
+            ))
+            print(f"  + User: {acc['email']}")
+        else:
+            print(f"  ~ Exists: {acc['email']}")
 
-# ── Reports ───────────────────────────────────────────────────────────────────
-from app.models import HazardType, Category
+    db.commit()
 
-reports_data = [
-    # (title, description, building, zone, hazard_type, category, severity, is_critical, status, hype, recurrence)
-    ("Exposed wiring near socket", "Electrical wire hanging loose near the lab entrance. Sparking when touched.", "Engineering Block A", "Lab Wing", "exposed_wiring", "electrical", 5, True, "assigned", 12, 0),
-    ("Broken step on staircase", "Third step on the main staircase is cracked and wobbly.", "Hostel Block 2", "Stairwell", "broken_infrastructure", "civil", 4, False, "in_progress", 8, 1),
-    ("Ceiling water leak", "Water dripping from ceiling near the server room entrance.", "Main Library", "First Floor", "water_leakage", "civil", 3, False, "reported", 5, 0),
-    ("Street light not working", "The lamp post at north parking lot has been dark for 3 days.", "Parking Lot", "North Entrance", "broken_light", "civil", 2, False, "resolved", 3, 2),
-    ("Suspicious person loitering", "Unidentified person near hostel block after midnight.", "Hostel Block 1", "Common Room", "suspicious_activity", "security", 4, True, "assigned", 7, 0),
-    ("Gas smell in chemistry lab", "Strong gas odour near ventilation in chem lab. Possible leak.", "Science Block", "Chemistry Lab", "fire_risk", "civil", 5, True, "in_progress", 15, 0),
-    ("Flooded corridor after rain", "Water pooling 5cm deep in Engineering Block B corridor.", "Engineering Block B", "Corridor", "water_leakage", "civil", 3, False, "in_progress", 6, 1),
-    ("Broken glass door", "Main entry door glass shattered, sharp shards on floor.", "Admin Building", "Reception", "broken_infrastructure", "civil", 4, False, "pending_confirmation", 4, 0),
-    ("Overflowing dustbin", "Garbage bin outside canteen overflowing since 2 days.", "Canteen", "Main Hall", "sanitation", "civil", 2, False, "resolved", 2, 3),
-    ("CCTV camera not working", "Camera at hostel block 2 entrance showing black screen.", "Hostel Block 2", "Stairwell", "other", "security", 3, False, "assigned", 3, 0),
-    ("Faulty gym equipment", "Treadmill motor making grinding noise, safety guard missing.", "Sports Complex", "Gym", "broken_infrastructure", "civil", 3, False, "reported", 5, 0),
-    ("Pot hole near library gate", "Large pothole near the library gate causing bike damage.", "Main Library", "Ground Floor", "pothole", "civil", 2, False, "reported", 9, 2),
-    ("Exposed switchboard", "Open switchboard with live wires in library first floor.", "Main Library", "First Floor", "exposed_wiring", "electrical", 4, True, "assigned", 11, 0),
-    ("Broken railing on ramp", "Wheelchair ramp railing is loose and unsafe.", "Medical Centre", "Waiting Area", "broken_infrastructure", "civil", 3, False, "reported", 4, 0),
-    ("Rodent infestation canteen", "Rats spotted in canteen kitchen area multiple times.", "Canteen", "Main Hall", "sanitation", "civil", 3, False, "in_progress", 13, 4),
-    ("Elevator not working", "Lift in Hostel Block 1 stuck between floors, stuck 2 hours.", "Hostel Block 1", "Common Room", "broken_infrastructure", "civil", 4, False, "resolved", 6, 1),
-    ("Water cooler broken", "Water cooler near library entrance leaking. Floor wet and slippery.", "Main Library", "Ground Floor", "water_leakage", "civil", 3, False, "reported", 4, 0),
-    ("Graffiti on walls", "Offensive graffiti on engineering block wall.", "Engineering Block B", "Corridor", "other", "security", 1, False, "resolved", 1, 0),
-    ("Fire alarm false trigger", "Fire alarm triggered without any fire — disrupted exams.", "Engineering Block A", "Lab Wing", "fire_risk", "civil", 3, False, "assigned", 7, 1),
-    ("Parking lot flooding", "North parking lot floods every time it rains.", "Parking Lot", "North Entrance", "water_leakage", "civil", 2, False, "reported", 8, 3),
-    ("AC unit sparking", "Air conditioner in chemistry lab sparking and smelling burnt.", "Science Block", "Chemistry Lab", "exposed_wiring", "electrical", 5, True, "in_progress", 14, 0),
-    ("Broken window latch", "Window in engineering block B cannot be locked.", "Engineering Block B", "Corridor", "broken_infrastructure", "civil", 2, False, "resolved", 2, 0),
-    ("Sewage smell near hostel", "Strong sewage smell near Hostel Block 2 entrance.", "Hostel Block 2", "Stairwell", "sanitation", "civil", 3, False, "reported", 6, 2),
-    ("Missing manhole cover", "Open manhole near science block, no cover, no warning sign.", "Science Block", "Chemistry Lab", "unsafe_structure", "civil", 5, True, "assigned", 10, 0),
-    ("Gym equipment electrical fault", "Gym treadmill making sparking sound from power outlet.", "Sports Complex", "Gym", "exposed_wiring", "electrical", 4, True, "reported", 8, 0),
-]
+    # ── Campus Buildings ──────────────────────────────────────────────────────
+    # (building, zone, criticality 1-5, plinth_area sq.m)
+    # Criticality: 5=labs/high-risk, 4=hostels/academic, 3=admin/library, 2=services, 1=parking/ancillary
+    buildings = [
+        # Academic / Technical Blocks
+        ("Main Block", "Ground Floor",       4, 5630.00),
+        ("Main Block", "Upper Floors",       4, 5630.00),
+        ("University Building", "Wing A",    3, 4200.00),
+        ("University Building", "Wing B",    3, 4200.00),
+        ("Computer Science Block", None,     4, 2800.00),
+        ("PG Block", None,                   4, 1950.00),
+        ("S&H Block", None,                  3, 1800.00),
+        ("MBA Block", None,                  4, 3200.00),
+        ("New MBA Block (Law)", None,        3, 2500.00),
+        ("B.Arch Block", None,               4, 1600.00),
+        ("Kalam Block", None,                4, 3100.00),
+        ("CRC Block", None,                  3, 2200.00),
+        # Engineering Labs & Workshops
+        ("Electrical Science Block", None,   5, 2150.00),
+        ("Bio Tech Block", None,             5, 1980.00),
+        ("Hi Tech Block", None,              5, 2400.00),
+        ("Basic Engineering Lab", None,      5, 1750.00),
+        ("Chemical Block", None,             5, 1850.00),
+        ("Chemistry Research", None,         5, 1200.00),
+        ("Raman Research Park", None,        4, 2000.00),
+        ("iOS Development Centre", None,     4, 1100.00),
+        # Mechanical & Aerospace
+        ("Mechanical Block A", None,         5, 2100.00),
+        ("Mechanical Block B", None,         5, 2100.00),
+        ("Mechanical Block C", None,         5, 2100.00),
+        ("Mechanical Block D", None,         5, 2100.00),
+        ("Mechanical Block E", None,         5, 2100.00),
+        ("Mechanical Hanger", None,          5, 3500.00),
+        ("Aerospace Hanger", None,           5, 4200.00),
+        ("Automobile Block", None,           5, 1900.00),
+        # IT / Tech Parks
+        ("IT Park", "Block A",               4, 3800.00),
+        ("IT Park", "Block B",               4, 3800.00),
+        ("Tech Park 1", "Ground Floor",      4, 4500.00),
+        ("Tech Park 1", "Upper Floors",      4, 4500.00),
+        ("Tech Park 2", None,                4, 4500.00),
+        # Library & Admin
+        ("Library Building", None,           3, 3600.00),
+        ("Administrative Building", None,    3, 2900.00),
+        ("Estate Office", None,              2, 600.00),
+        ("Post Office", None,                1, 200.00),
+        # Auditorium & Events
+        ("Auditorium", None,                 3, 2800.00),
+        # Hostels
+        ("Sannasi Hostel IV", "Block A",     4, 5200.00),
+        ("Sannasi Hostel IV", "Block B",     4, 5200.00),
+        ("New Ladies Hostel A", None,        4, 3800.00),
+        ("International Hostel", "Male",     4, 2600.00),
+        ("International Hostel", "Female",   4, 2600.00),
+        # Canteen & Food
+        ("Canteen Building", None,           2, 1200.00),
+        ("Canteen Extension", None,          2, 600.00),
+        ("Java Green", None,                 2, 400.00),
+        # Sports & Recreation
+        ("Gymnasium", None,                  3, 1100.00),
+        ("Swimming Pool", None,              3, 800.00),
+        # Health & Services
+        ("Medical Centre", None,             4, 500.00),
+        ("Guest House", None,                2, 800.00),
+        # Security
+        ("Main Gate Security Post", None,    3, 150.00),
+        ("Police Outpost", None,             3, 120.00),
+        # Parking & Utilities
+        ("Vehicle Parking (North)", None,    1, 2000.00),
+        ("Vehicle Parking (South)", None,    1, 1800.00),
+        ("Power House", None,                5, 700.00),
+        ("Pump House", None,                 4, 300.00),
+        ("Waste Management Unit", None,      3, 400.00),
+        ("Solar Panel Area", None,           2, 1500.00),
+        ("Transformer Yard", None,           5, 350.00),
+        # Outdoor / Campus Areas
+        ("Main Entrance Plaza", None,        2, None),
+        ("Central Lawn",         None,       2, None),
+        ("Sports Ground",        None,       2, None),
+        ("Sculpture Garden",     None,       1, None),
+        ("Campus Road Network",  None,       2, None),
+        ("Rainwater Harvesting Pond", None,  2, None),
+    ]
 
-# Department mapping
-DEPT_MAP = {"electrical": "Electrical", "civil": "Civil", "security": "Security", "other": "Admin"}
-AUTH_MAP = {"Electrical": authorities[0], "Civil": authorities[1], "Security": authorities[2], "Admin": admin}
+    # Remove all existing locations so we get a clean set
+    db.query(Location).delete()
+    db.commit()
 
-created_reports = []
-base_time = datetime.utcnow() - timedelta(days=25)
+    for building, zone, criticality, plinth_area in buildings:
+        db.add(Location(
+            building=building,
+            zone=zone,
+            criticality=criticality,
+            plinth_area=plinth_area,
+        ))
 
-for i, (title, desc, building, zone, htype, cat, sev, critical, status, hype, recurrence) in enumerate(reports_data):
-    reporter = random.choice(students)
-    dept = DEPT_MAP.get(cat, "Admin")
-    authority = AUTH_MAP[dept]
+    db.commit()
+    print(f"\n✅ Seeded {len(buildings)} campus locations.")
+    print("\n── Login Credentials ───────────────────────────────")
+    print("  Admin      : admin@university.edu        / admin123")
+    print("  Electrical : electrical@university.edu   / auth123")
+    print("  Civil      : civil@university.edu        / auth123")
+    print("  Security   : security@university.edu     / auth123")
+    print("────────────────────────────────────────────────────")
+    print("No demo reports seeded. Reports are created by users via the app.")
 
-    created_at = base_time + timedelta(days=i, hours=random.randint(0, 10))
-    resolved_at = None
-    if status == "resolved":
-        resolved_at = created_at + timedelta(days=random.randint(1, 4))
 
-    r = Report(
-        reporter_id=reporter.id,
-        title=title,
-        description=desc,
-        building=building,
-        zone=zone,
-        hazard_type=htype,
-        category=cat,
-        severity=sev,
-        is_safety_critical=critical,
-        ai_summary=title,
-        ai_reasoning=f"AI detected {htype} with severity {sev}.",
-        ai_confidence=round(random.uniform(0.75, 0.98), 2),
-        status=status,
-        assigned_department=dept,
-        assigned_to=authority.id if status != "reported" else None,
-        hype_count=hype,
-        recurrence_count=recurrence,
-        is_anonymous=(i % 7 == 0),
-        created_at=created_at,
-        updated_at=created_at + timedelta(hours=2),
-        resolved_at=resolved_at,
-    )
-    db.add(r)
-    db.flush()
-
-    # Priority score
-    loc_criticality = next((l.criticality for l in locs if l.building == building), 3)
-    breakdown = compute_priority(r, location_criticality=loc_criticality)
-    r.priority_score = breakdown["final_score"]
-
-    # Status log
-    log = StatusLog(
-        report_id=r.id,
-        old_status=None,
-        new_status="reported",
-        changed_by=reporter.id,
-        note="Report submitted",
-        created_at=created_at,
-    )
-    db.add(log)
-    if status != "reported":
-        log2 = StatusLog(
-            report_id=r.id,
-            old_status="reported",
-            new_status=status,
-            changed_by=authority.id,
-            note="Status updated by authority",
-            created_at=created_at + timedelta(hours=3),
-        )
-        db.add(log2)
-
-    # Add some hypes from students
-    hype_users = random.sample(students, min(hype % 5, len(students)))
-    for su in hype_users:
-        if su.id != reporter.id:
-            h = Hype(report_id=r.id, user_id=su.id, created_at=created_at + timedelta(hours=1))
-            db.add(h)
-
-    created_reports.append(r)
-
-db.commit()
-print(f"Created {len(created_reports)} reports with status logs, hypes, and priority scores.")
-
-print("\n✅ Seed complete!")
-print("\n── Demo credentials ────────────────────────────────")
-print("Admin:      admin@university.edu      / admin123")
-print("Electrical: raj.elec@university.edu   / auth123")
-print("Civil:      priya.civil@university.edu / auth123")
-print("Security:   suresh.sec@university.edu  / auth123")
-print("Student 1:  arjun@student.edu          / student123")
-print("Student 2:  sneha@student.edu          / student123")
-print("─────────────────────────────────────────────────────")
+if __name__ == "__main__":
+    seed()

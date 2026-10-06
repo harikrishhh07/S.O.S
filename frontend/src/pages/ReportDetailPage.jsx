@@ -4,7 +4,7 @@ import { reportsAPI } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { SeverityBadge, StatusBadge, CategoryBadge, Spinner, CriticalBanner } from '../components/UI'
 import toast from 'react-hot-toast'
-import { MapPin, Clock, Flame, CheckCircle, XCircle, RotateCcw, BarChart3 } from 'lucide-react'
+import { MapPin, Clock, Flame, CheckCircle, XCircle, RotateCcw, BarChart3, Trash2 } from 'lucide-react'
 
 const STATUS_STEPS = ['reported', 'assigned', 'in_progress', 'pending_confirmation', 'resolved']
 
@@ -61,6 +61,17 @@ export default function ReportDetailPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this report permanently? This action cannot be undone.')) return
+    try {
+      await reportsAPI.delete(id)
+      toast.success('Report deleted')
+      navigate('/admin')
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to delete report')
+    }
+  }
+
   const timeAgo = (dt) => {
     if (!dt) return ''
     const diff = (Date.now() - new Date(dt + 'Z')) / 1000
@@ -68,6 +79,15 @@ export default function ReportDetailPage() {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
     return `${Math.floor(diff / 86400)}d ago`
+  }
+
+  const formatTimestamp = (dt) => {
+    if (!dt) return ''
+    const value = typeof dt === 'string' && dt.endsWith('Z') ? dt : `${dt}Z`
+    return new Date(value).toLocaleString([], {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
   }
 
   if (loading) return (
@@ -124,6 +144,15 @@ export default function ReportDetailPage() {
           <span className="text-xs text-gray-400">
             Priority score: <strong className="text-gray-700">{Math.round(report.priority_score)}</strong>
           </span>
+          {user?.role === 'admin' && (
+            <button
+              onClick={handleDelete}
+              className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+              title="Delete report"
+            >
+              <Trash2 size={14} /> Delete
+            </button>
+          )}
         </div>
       </div>
 
@@ -168,7 +197,7 @@ export default function ReportDetailPage() {
             <div><span className="text-gray-400">Hazard type:</span> <span className="font-medium">{report.hazard_type?.replace(/_/g, ' ') || '—'}</span></div>
           </div>
 
-          {/* Before/after photos */}
+          {/* Before/after photos + Feature 8: AI Quality Rating */}
           {report.verification && (
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-2">Before / After Comparison</p>
@@ -184,8 +213,62 @@ export default function ReportDetailPage() {
                   <img src={`http://localhost:8000/${report.verification.after_image_path}`} alt="after" className="rounded-lg w-full h-28 object-cover" />
                 </div>
               </div>
+
+              {/* AI Quality Rating Panel */}
+              {report.verification.ai_fix_quality && (
+                <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">🤖 AI Fix Quality Assessment</p>
+
+                  {/* Quality score bar */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${
+                          report.verification.ai_fix_quality_score >= 80 ? 'bg-green-500' :
+                          report.verification.ai_fix_quality_score >= 55 ? 'bg-amber-400' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${report.verification.ai_fix_quality_score || 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-gray-700 w-8">{report.verification.ai_fix_quality_score}/100</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      report.verification.ai_fix_quality === 'excellent' ? 'bg-green-100 text-green-700' :
+                      report.verification.ai_fix_quality === 'good' ? 'bg-blue-100 text-blue-700' :
+                      report.verification.ai_fix_quality === 'temporary' ? 'bg-amber-100 text-amber-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {report.verification.ai_fix_quality === 'excellent' ? '⭐ Excellent fix' :
+                       report.verification.ai_fix_quality === 'good' ? '✅ Good fix' :
+                       report.verification.ai_fix_quality === 'temporary' ? '⚠️ Temporary fix' :
+                       '❌ Inadequate fix'}
+                    </span>
+                    {report.verification.ai_durability_risk && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        report.verification.ai_durability_risk === 'low' ? 'bg-green-50 text-green-600' :
+                        report.verification.ai_durability_risk === 'medium' ? 'bg-amber-50 text-amber-600' :
+                        'bg-red-50 text-red-600'
+                      }`}>
+                        Recurrence risk: {report.verification.ai_durability_risk}
+                      </span>
+                    )}
+                    {report.verification.ai_follow_up_days && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
+                        📅 Re-inspect in {report.verification.ai_follow_up_days} days
+                      </span>
+                    )}
+                  </div>
+
+                  {report.verification.ai_quality_reasoning && (
+                    <p className="text-xs text-gray-500 italic">"{report.verification.ai_quality_reasoning}"</p>
+                  )}
+                </div>
+              )}
+
               {report.verification.flagged_for_review && (
-                <p className="text-xs text-amber-600 mt-1">⚠️ Flagged for admin review (low AI match confidence)</p>
+                <p className="text-xs text-amber-600 mt-1">⚠️ Flagged for admin review</p>
               )}
             </div>
           )}
@@ -249,7 +332,9 @@ export default function ReportDetailPage() {
                     {log.old_status ? `${log.old_status} → ` : ''}{log.new_status}
                   </p>
                   {log.note && <p className="text-xs text-gray-500 mt-0.5">{log.note}</p>}
-                  <p className="text-xs text-gray-400 mt-0.5">{timeAgo(log.created_at)} {log.changer_name ? `· ${log.changer_name}` : ''}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {formatTimestamp(log.created_at)} · {timeAgo(log.created_at)} {log.changer_name ? `· ${log.changer_name}` : ''}
+                  </p>
                 </div>
               </div>
             ))}
@@ -267,7 +352,8 @@ export default function ReportDetailPage() {
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-xs text-gray-400">Confidence</p>
-              <p className="font-semibold mt-0.5">{report.ai_confidence ? `${Math.round(report.ai_confidence * 100)}%` : '—'}</p>
+              <p className="font-semibold mt-0.5">{report.ai_confidence != null ? `${Math.round(report.ai_confidence * 100)}%` : '—'}</p>
+              <p className="text-[11px] text-gray-400 mt-1">{report.ai_reasoning?.includes('Gemini unavailable') ? 'Local ML confidence' : 'Classifier confidence'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-xs text-gray-400">Category</p>
@@ -276,6 +362,11 @@ export default function ReportDetailPage() {
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-xs text-gray-400">Safety Critical</p>
               <p className="font-semibold mt-0.5">{report.is_safety_critical ? '🚨 Yes' : '✅ No'}</p>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-3">
+              <p className="text-xs text-blue-500">Local ML Severity</p>
+              <p className="font-semibold mt-0.5 text-blue-900">{report.ml_severity ? `S${report.ml_severity} / 5` : '—'}</p>
+              <p className="text-[11px] text-blue-500 mt-1">{report.ml_severity_confidence != null ? `${Math.round(report.ml_severity_confidence * 100)}% model confidence` : 'Model unavailable'}</p>
             </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">

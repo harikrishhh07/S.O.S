@@ -40,13 +40,19 @@ def analytics_summary(
     # By status
     by_status = {}
     for r in all_reports:
-        key = r.status.value
+        key = r.status.value if hasattr(r.status, 'value') else str(r.status)
         by_status[key] = by_status.get(key, 0) + 1
 
-    # By category
+    # By category (category is a plain string / taxonomy department id)
     by_category = {}
     for r in all_reports:
-        key = r.category.value if r.category else "unknown"
+        raw = r.category
+        if raw is None:
+            key = "unknown"
+        elif hasattr(raw, 'value'):
+            key = raw.value
+        else:
+            key = str(raw)
         by_category[key] = by_category.get(key, 0) + 1
 
     # Top buildings
@@ -117,3 +123,16 @@ def analytics_summary(
         hype_leaderboard=hype_leaderboard,
         resolution_by_department=resolution_by_department,
     )
+
+
+# ── Feature 4: Weekly AI Digest ───────────────────────────────────────────────
+
+@router.get("/digest")
+@router.post("/digest/generate")
+async def get_weekly_digest(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.admin, UserRole.authority)),
+):
+    from app.services.digest import generate_weekly_digest
+    department = current_user.department if current_user.role == UserRole.authority else None
+    return await generate_weekly_digest(db, department=department)

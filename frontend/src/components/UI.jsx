@@ -17,18 +17,47 @@ export function StatusBadge({ status }) {
 }
 
 // ── Category Badge ────────────────────────────────────────────────────────────
-export function CategoryBadge({ category }) {
-  const colors = {
-    electrical: 'bg-yellow-100 text-yellow-800',
-    civil: 'bg-blue-100 text-blue-800',
-    security: 'bg-red-100 text-red-800',
-    other: 'bg-gray-100 text-gray-800',
-  }
-  return (
-    <span className={`badge ${colors[category] || colors.other}`}>
-      {category}
-    </span>
-  )
+// Maps taxonomy department ids to display-friendly short labels + colors
+const DEPT_DISPLAY = {
+  electrical_services:       { label: 'Electrical',    cls: 'bg-yellow-100 text-yellow-800' },
+  civil_plumbing_services:   { label: 'Civil',         cls: 'bg-blue-100 text-blue-800' },
+  security_services:         { label: 'Security',      cls: 'bg-red-100 text-red-800' },
+  fire_safety_services:      { label: 'Fire & Safety', cls: 'bg-orange-100 text-orange-800' },
+  housekeeping_services:     { label: 'Housekeeping',  cls: 'bg-green-100 text-green-800' },
+  hvac_ac_services:          { label: 'HVAC / AC',     cls: 'bg-cyan-100 text-cyan-800' },
+  it_telecom_services:       { label: 'IT & Telecom',  cls: 'bg-indigo-100 text-indigo-800' },
+  facility_services:         { label: 'Facility',      cls: 'bg-purple-100 text-purple-800' },
+  hostel_services:           { label: 'Hostel',        cls: 'bg-pink-100 text-pink-800' },
+  transport_services:        { label: 'Transport',     cls: 'bg-sky-100 text-sky-800' },
+  medical_health_services:   { label: 'Medical',       cls: 'bg-rose-100 text-rose-800' },
+  mess_food_services:        { label: 'Mess / Food',   cls: 'bg-lime-100 text-lime-800' },
+  laundry_services:          { label: 'Laundry',       cls: 'bg-teal-100 text-teal-800' },
+  waste_management:          { label: 'Waste Mgmt',    cls: 'bg-stone-100 text-stone-700' },
+  landscaping_campus:              { label: 'Landscaping',   cls: 'bg-emerald-100 text-emerald-800' },
+  landscaping_campus_maintenance:  { label: 'Landscaping',   cls: 'bg-emerald-100 text-emerald-800' },
+  housekeeping:                    { label: 'Housekeeping',  cls: 'bg-green-100 text-green-800' },
+  landscaping:                     { label: 'Landscaping',   cls: 'bg-emerald-100 text-emerald-800' },
+  transport_parking:         { label: 'Parking',       cls: 'bg-sky-100 text-sky-800' },
+  library_services:          { label: 'Library',       cls: 'bg-violet-100 text-violet-800' },
+  sports_recreation:         { label: 'Sports',        cls: 'bg-fuchsia-100 text-fuchsia-800' },
+  labs_technical:            { label: 'Labs',          cls: 'bg-amber-100 text-amber-800' },
+  procurement_stores:        { label: 'Procurement',   cls: 'bg-zinc-100 text-zinc-700' },
+  architect_services:        { label: 'Architect',     cls: 'bg-blue-100 text-blue-800' },
+  environment_sustainability:{ label: 'Environment',   cls: 'bg-green-100 text-green-800' },
+  events_campus_facilities:  { label: 'Events',        cls: 'bg-purple-100 text-purple-800' },
+  student_admin_services:    { label: 'Admin',         cls: 'bg-gray-100 text-gray-800' },
+  // Legacy 4-category fallback
+  electrical: { label: 'Electrical', cls: 'bg-yellow-100 text-yellow-800' },
+  civil:      { label: 'Civil',      cls: 'bg-blue-100 text-blue-800' },
+  security:   { label: 'Security',   cls: 'bg-red-100 text-red-800' },
+  other:      { label: 'Other',      cls: 'bg-gray-100 text-gray-800' },
+}
+
+export function CategoryBadge({ category, serviceLabel }) {
+  const info = DEPT_DISPLAY[category]
+  const label = serviceLabel || info?.label || (category ? category.replace(/_/g, ' ') : 'Other')
+  const cls = info?.cls || 'bg-gray-100 text-gray-800'
+  return <span className={`badge ${cls}`}>{label}</span>
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────

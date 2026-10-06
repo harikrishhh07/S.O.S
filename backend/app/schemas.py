@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Any
 from datetime import datetime
-from app.models import UserRole, ReportStatus, HazardType, Category
+from app.models import UserRole, ReportStatus
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ class UserOut(BaseModel):
     name: str
     email: str
     role: UserRole
-    department: Optional[str]
+    department: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -42,8 +42,9 @@ class Token(BaseModel):
 class LocationOut(BaseModel):
     id: int
     building: str
-    zone: Optional[str]
+    zone: Optional[str] = None
     criticality: int
+    plinth_area: Optional[float] = None
 
     class Config:
         from_attributes = True
@@ -73,9 +74,9 @@ class PriorityBreakdown(BaseModel):
 
 class StatusLogOut(BaseModel):
     id: int
-    old_status: Optional[str]
+    old_status: Optional[str] = None
     new_status: str
-    note: Optional[str]
+    note: Optional[str] = None
     created_at: datetime
     changer_name: Optional[str] = None
 
@@ -86,29 +87,33 @@ class StatusLogOut(BaseModel):
 class ReportOut(BaseModel):
     id: int
     title: str
-    description: Optional[str]
-    image_path: Optional[str]
+    description: Optional[str] = None
+    image_path: Optional[str] = None
     building: str
-    zone: Optional[str]
-    lat: Optional[float]
-    lng: Optional[float]
-    hazard_type: Optional[HazardType]
-    category: Optional[Category]
-    severity: Optional[int]
-    is_safety_critical: bool
-    ai_summary: Optional[str]
-    ai_reasoning: Optional[str]
-    ai_confidence: Optional[float]
+    zone: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    hazard_type: Optional[str] = None
+    category: Optional[str] = None
+    service_id: Optional[str] = None
+    severity: Optional[int] = None
+    is_safety_critical: bool = False
+    ai_summary: Optional[str] = None
+    ai_reasoning: Optional[str] = None
+    ai_confidence: Optional[float] = None
+    ml_severity: Optional[int] = None
+    ml_severity_confidence: Optional[float] = None
+    ml_model: Optional[str] = None
     status: ReportStatus
-    assigned_department: Optional[str]
-    priority_score: float
-    hype_count: int
-    recurrence_count: int
-    duplicate_of: Optional[int]
-    is_anonymous: bool
+    assigned_department: Optional[str] = None
+    priority_score: float = 0.0
+    hype_count: int = 0
+    recurrence_count: int = 0
+    duplicate_of: Optional[int] = None
+    is_anonymous: bool = False
     created_at: datetime
     updated_at: datetime
-    resolved_at: Optional[datetime]
+    resolved_at: Optional[datetime] = None
 
     # Hydrated fields (set by endpoint)
     reporter_name: Optional[str] = None
@@ -116,6 +121,7 @@ class ReportOut(BaseModel):
     current_user_hyped: bool = False
     status_history: List[StatusLogOut] = []
     priority_breakdown: Optional[PriorityBreakdown] = None
+    verification: Optional[Any] = None
 
     class Config:
         from_attributes = True
@@ -125,16 +131,17 @@ class ReportListItem(BaseModel):
     id: int
     title: str
     building: str
-    zone: Optional[str]
-    hazard_type: Optional[HazardType]
-    category: Optional[Category]
-    severity: Optional[int]
-    is_safety_critical: bool
+    zone: Optional[str] = None
+    hazard_type: Optional[str] = None
+    category: Optional[str] = None
+    service_id: Optional[str] = None
+    severity: Optional[int] = None
+    is_safety_critical: bool = False
     status: ReportStatus
-    priority_score: float
-    hype_count: int
-    recurrence_count: int
-    is_anonymous: bool
+    priority_score: float = 0.0
+    hype_count: int = 0
+    recurrence_count: int = 0
+    is_anonymous: bool = False
     created_at: datetime
     reporter_name: Optional[str] = None
     current_user_hyped: bool = False
@@ -187,22 +194,25 @@ class DuplicateResult(BaseModel):
 class VerificationOut(BaseModel):
     id: int
     after_image_path: str
-    reporter_confirmed: Optional[bool]
-    ai_match_score: Optional[float]
-    ai_same_location: Optional[bool]
-    ai_issue_resolved: Optional[bool]
-    flagged_for_review: bool
+    reporter_confirmed: Optional[bool] = None
+    ai_match_score: Optional[float] = None
+    ai_same_location: Optional[bool] = None
+    ai_issue_resolved: Optional[bool] = None
+    flagged_for_review: bool = False
+    ai_fix_quality: Optional[str] = None
+    ai_fix_quality_score: Optional[int] = None
+    ai_durability_risk: Optional[str] = None
+    ai_follow_up_days: Optional[int] = None
+    ai_quality_reasoning: Optional[str] = None
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 
-# ── Notification ─────────────────────────────────────────────────────────────
-
 class NotificationOut(BaseModel):
     id: int
-    report_id: Optional[int]
+    report_id: Optional[int] = None
     message: str
     channel: str
     sent_at: datetime

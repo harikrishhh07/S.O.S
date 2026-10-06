@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { analyticsAPI, reportsAPI } from '../api/client'
 import { Spinner, EmptyState } from '../components/UI'
+import WeeklyDigestCard from '../components/WeeklyDigestCard'
 import toast from 'react-hot-toast'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -20,8 +21,6 @@ const KPICard = ({ label, value, sub, color = 'text-gray-900' }) => (
 export default function AdminDashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [seedLoading, setSeedLoading] = useState(false)
-  const [hyping, setHyping] = useState(false)
   const [allReports, setAllReports] = useState([])
   const [tab, setTab] = useState('overview')
 
@@ -41,27 +40,6 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchData() }, [])
 
-  const seedDemo = async () => {
-    setSeedLoading(true)
-    try {
-      const r = await fetch('http://localhost:8000/admin/demo-seed', { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('sos_token')}` } })
-      if (r.ok) { toast.success('Demo data refreshed!'); fetchData() }
-      else toast.error('Seed endpoint not available')
-    } catch { toast.error('Backend not reachable') }
-    finally { setSeedLoading(false) }
-  }
-
-  const simulateHypeSurge = async () => {
-    setHyping(true)
-    try {
-      // Hype the top 5 open reports from different users via API
-      const openReports = allReports.filter(r => r.status !== 'resolved').slice(0, 5)
-      await Promise.all(openReports.map(r => reportsAPI.hype(r.id).catch(() => {})))
-      toast.success('Hype surge simulated on top 5 reports!')
-      fetchData()
-    } finally { setHyping(false) }
-  }
-
   if (loading) return <div className="flex justify-center py-16"><Spinner size="lg" /></div>
   if (!data) return <EmptyState icon="📊" title="No analytics yet" description="Seed some data first." />
 
@@ -73,14 +51,6 @@ export default function AdminDashboard() {
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-        <div className="flex gap-2">
-          <button onClick={simulateHypeSurge} disabled={hyping} className="btn-secondary text-xs py-1.5 px-3">
-            {hyping ? <Spinner size="sm" /> : '🔥 Simulate Hype Surge'}
-          </button>
-          <button onClick={seedDemo} disabled={seedLoading} className="btn-primary text-xs py-1.5 px-3">
-            {seedLoading ? <Spinner size="sm" /> : '🌱 Refresh Demo Data'}
-          </button>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -103,6 +73,11 @@ export default function AdminDashboard() {
             <KPICard label="Avg Resolution" value={data.avg_resolution_hours ? `${data.avg_resolution_hours}h` : '—'} />
             <KPICard label="% Duplicates" value={`${data.duplicate_percentage}%`} />
             <KPICard label="Critical Open" value={data.critical_open} color={data.critical_open > 0 ? 'text-red-600' : 'text-green-600'} />
+          </div>
+
+          {/* Feature 4: Weekly AI Digest */}
+          <div className="mb-6">
+            <WeeklyDigestCard />
           </div>
 
           {/* Charts row */}

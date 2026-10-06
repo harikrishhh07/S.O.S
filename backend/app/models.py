@@ -24,6 +24,7 @@ class ReportStatus(str, enum.Enum):
 
 
 class HazardType(str, enum.Enum):
+    # Original types
     exposed_wiring = "exposed_wiring"
     water_leakage = "water_leakage"
     broken_infrastructure = "broken_infrastructure"
@@ -34,13 +35,47 @@ class HazardType(str, enum.Enum):
     suspicious_activity = "suspicious_activity"
     sanitation = "sanitation"
     other = "other"
+    # Dataset-trained types (SRM KTR campus dataset)
+    waterlogging = "waterlogging"
+    lighting_issue = "lighting_issue"
+    infrastructure_issue = "infrastructure_issue"
+    maintenance_issue = "maintenance_issue"
+    cleanliness_issue = "cleanliness_issue"
+    access_issue = "access_issue"
 
 
+# Category is now a free String backed by taxonomy.py department ids.
+# Kept as a lightweight alias so old code that imports Category still works.
 class Category(str, enum.Enum):
     electrical = "electrical"
     civil = "civil"
     security = "security"
     other = "other"
+    # Extended — maps to taxonomy department ids
+    architect_services = "architect_services"
+    facility_services = "facility_services"
+    hostel_services = "hostel_services"
+    transport_services = "transport_services"
+    security_services = "security_services"
+    housekeeping_services = "housekeeping_services"
+    electrical_services = "electrical_services"
+    civil_plumbing_services = "civil_plumbing_services"
+    fire_safety_services = "fire_safety_services"
+    hvac_ac_services = "hvac_ac_services"
+    it_telecom_services = "it_telecom_services"
+    laundry_services = "laundry_services"
+    mess_food_services = "mess_food_services"
+    transport_parking = "transport_parking"
+    landscaping_campus = "landscaping_campus"
+    waste_management = "waste_management"
+    student_admin_services = "student_admin_services"
+    medical_health_services = "medical_health_services"
+    library_services = "library_services"
+    sports_recreation = "sports_recreation"
+    labs_technical = "labs_technical"
+    procurement_stores = "procurement_stores"
+    environment_sustainability = "environment_sustainability"
+    events_campus_facilities = "events_campus_facilities"
 
 
 class User(Base):
@@ -74,7 +109,8 @@ class Report(Base):
 
     # AI fields
     hazard_type = Column(SAEnum(HazardType), nullable=True)
-    category = Column(SAEnum(Category), nullable=True)
+    category = Column(String(100), nullable=True)       # taxonomy department id
+    service_id = Column(String(100), nullable=True)     # taxonomy sub-service id
     severity = Column(Integer, nullable=True)  # 1-5
     is_safety_critical = Column(Boolean, default=False)
     ai_summary = Column(String(300), nullable=True)
@@ -151,6 +187,12 @@ class Verification(Base):
     ai_same_location = Column(Boolean, nullable=True)
     ai_issue_resolved = Column(Boolean, nullable=True)
     flagged_for_review = Column(Boolean, default=False)
+    # Feature 8: Enhanced quality rating fields
+    ai_fix_quality = Column(String(20), nullable=True)       # excellent/good/temporary/inadequate
+    ai_fix_quality_score = Column(Integer, nullable=True)    # 0-100
+    ai_durability_risk = Column(String(10), nullable=True)   # low/medium/high
+    ai_follow_up_days = Column(Integer, nullable=True)       # days until re-inspection
+    ai_quality_reasoning = Column(String(1000), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     report = relationship("Report", back_populates="verification")
@@ -179,3 +221,4 @@ class Location(Base):
     building = Column(String(100), nullable=False)
     zone = Column(String(100), nullable=True)
     criticality = Column(Integer, default=3)  # 1-5
+    plinth_area = Column(Float, nullable=True)  # Sq.m from official records

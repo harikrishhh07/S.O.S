@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import engine, Base
 from app.core.config import get_settings
 from app.routers import auth, reports, notifications, analytics, locations
+from app.routers import taxonomy as taxonomy_router
 
 settings = get_settings()
 
@@ -38,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(reports.router)
 app.include_router(notifications.router)
 app.include_router(analytics.router)
+app.include_router(taxonomy_router.router)
 app.include_router(locations.router)
 
 
@@ -49,17 +51,3 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
-
-@app.post("/admin/demo-seed")
-def demo_seed(current_user=Depends(lambda: None)):
-    """Re-run the seed script to refresh demo data (admin use)."""
-    import subprocess, sys
-    result = subprocess.run(
-        [sys.executable, "seed.py"],
-        capture_output=True, text=True,
-        cwd=os.path.dirname(os.path.abspath(__file__ + "/..")),
-    )
-    if result.returncode == 0:
-        return {"message": "Demo data seeded successfully", "output": result.stdout[-500:]}
-    return {"message": "Seed failed", "error": result.stderr[-300:]}

@@ -1,0 +1,272 @@
+{
+  "description": "SRM KTR campus hazard dataset — 26 labeled examples for AI classifier prompt engineering",
+  "label_schema": {
+    "hazard_types": ["waterlogging", "lighting_issue", "infrastructure_issue", "maintenance_issue", "cleanliness_issue", "access_issue"],
+    "categories": ["civil", "electrical", "housekeeping", "security", "landscaping", "other"],
+    "severity": "1=minor inconvenience, 2=moderate, 3=notable hazard, 4=serious risk, 5=critical/immediate danger"
+  },
+  "train": [
+    {
+      "file": "srm_issue_2.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 3,
+      "location": "Administrative Block",
+      "summary": "Water accumulated near entrance after heavy rain",
+      "description": "Water has accumulated near the entrance after heavy rain, making it difficult for students to walk.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_10.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 3,
+      "location": "SRM Main Gate",
+      "summary": "Potholes and waterlogging at main gate with overflowing dustbin",
+      "description": "Huge potholes and water accumulation near the main gate after rain, causing inconvenience to vehicles and pedestrians. Dustbin is overflowing.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_11.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "electrical",
+      "severity": 2,
+      "location": "Main Academic Block",
+      "summary": "Street light near statue not working",
+      "description": "Street light near the statue is not working, making the area dark at night.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_12.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 3,
+      "location": "SRM Tech Park",
+      "summary": "Water accumulated near Tech Park entrance — slippery surface",
+      "description": "Water has accumulated near the entrance after heavy rain, causing slippery surface.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_13.png",
+      "hazard_type": "lighting_issue",
+      "category": "electrical",
+      "severity": 2,
+      "location": "Near Sculpture Area",
+      "summary": "Garden light not working at night — unsafe for students",
+      "description": "The garden light is not working at night, making the area unsafe for students.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_14.png",
+      "hazard_type": "cleanliness_issue",
+      "category": "housekeeping",
+      "severity": 2,
+      "location": "Open Amphitheatre / Terrace Area",
+      "summary": "Litter and plastic waste left after events",
+      "description": "Litter and plastic waste left by students after events, creating an unclean environment.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_15.png",
+      "hazard_type": "lighting_issue",
+      "category": "electrical",
+      "severity": 3,
+      "location": "Main Academic Block",
+      "summary": "Street light near statue not working — dark and unsafe at night",
+      "description": "Street light near the statue is not working, making the area dark and unsafe at night.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_16.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 3,
+      "location": "SRM Tech Park",
+      "summary": "Water accumulated near Tech Park entrance — slippery pathway",
+      "description": "Water has accumulated near the entrance after heavy rain, making the pathway slippery for students.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_17.png",
+      "hazard_type": "lighting_issue",
+      "category": "electrical",
+      "severity": 2,
+      "location": "Near Sculpture Area",
+      "summary": "Garden light not working — area poorly lit and unsafe",
+      "description": "Garden light is not working at night, making the area poorly lit and unsafe.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_18.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "civil",
+      "severity": 3,
+      "location": "Open Amphitheatre / Terrace Area",
+      "summary": "Broken and uneven pavement tiles — tripping hazard",
+      "description": "Pavement tiles are broken and uneven, creating a tripping hazard for students.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_19.png",
+      "hazard_type": "maintenance_issue",
+      "category": "landscaping",
+      "severity": 1,
+      "location": "Tech Park Lawn",
+      "summary": "Damaged sculpture/installation not maintained",
+      "description": "Sculpture/installation in the lawn is damaged and not maintained properly.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_20.png",
+      "hazard_type": "maintenance_issue",
+      "category": "landscaping",
+      "severity": 1,
+      "location": "Walkway Near Academic Block",
+      "summary": "Dried and unmaintained plants in flower pots",
+      "description": "Plants in the flower pots are not maintained and some are dried, affecting the campus cleanliness and greenery.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_21.png",
+      "hazard_type": "cleanliness_issue",
+      "category": "housekeeping",
+      "severity": 1,
+      "location": "Green Area Near Parking",
+      "summary": "Fallen leaves and flowers not cleaned — garden litter",
+      "description": "Fallen leaves and flowers are not cleaned regularly, creating litter in the garden area.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_22.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "civil",
+      "severity": 3,
+      "location": "Internal Campus Road",
+      "summary": "Road pothole making it difficult for pedestrians and vehicles",
+      "description": "Road surface is damaged with a pothole, making it difficult for pedestrians and vehicles.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_23.png",
+      "hazard_type": "maintenance_issue",
+      "category": "landscaping",
+      "severity": 1,
+      "location": "Walkway Near Academic Block",
+      "summary": "Dried plants in flower pots affecting campus greenery",
+      "description": "Plants in the flower pots are dried and not maintained, affecting the campus greenery.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_24.png",
+      "hazard_type": "cleanliness_issue",
+      "category": "housekeeping",
+      "severity": 1,
+      "location": "Green Area Near Parking",
+      "summary": "Fallen flowers not cleared — garden litter",
+      "description": "Fallen leaves and flowers are not cleaned regularly, creating litter in the garden area.",
+      "is_safety_critical": false
+    }
+  ],
+  "test": [
+    {
+      "file": "srm_issue_30.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "civil",
+      "severity": 3,
+      "location": "Internal Campus Road",
+      "summary": "Road pothole — difficult for pedestrians and vehicles",
+      "description": "Road surface is damaged with a pothole, making it difficult for pedestrians and vehicles.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_31.png",
+      "hazard_type": "maintenance_issue",
+      "category": "civil",
+      "severity": 3,
+      "location": "Library Block",
+      "summary": "Ceiling leakage causing water on library floor",
+      "description": "Leakage from the ceiling causing water on the floor.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_32.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "civil",
+      "severity": 2,
+      "location": "SRM Global Hospitals",
+      "summary": "Damaged signage/structure at hospital entrance",
+      "description": "Signage/structure near the entrance is damaged and needs repair.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_33.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 3,
+      "location": "Tree-lined Campus Road",
+      "summary": "Water accumulated on road after rain — difficult to walk",
+      "description": "Water accumulated on the road after rain, making it difficult to walk.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_34.png",
+      "hazard_type": "access_issue",
+      "category": "security",
+      "severity": 2,
+      "location": "Service Road Near Hostel/Block",
+      "summary": "Barricade blocking pathway — inconvenience to students",
+      "description": "Barricade is blocking the pathway, causing inconvenience to students.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_35.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "civil",
+      "severity": 4,
+      "location": "Academic Block Corridor",
+      "summary": "Damaged ceiling panel exposing wires and pipes",
+      "description": "Ceiling panel is damaged and exposing wires/pipes.",
+      "is_safety_critical": true
+    },
+    {
+      "file": "srm_issue_36.png",
+      "hazard_type": "infrastructure_issue",
+      "category": "civil",
+      "severity": 3,
+      "location": "Clock Tower",
+      "summary": "Visible cracks and paint peeling off clock tower structure",
+      "description": "Visible cracks and paint peeling off the structure.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_37.png",
+      "hazard_type": "maintenance_issue",
+      "category": "civil",
+      "severity": 2,
+      "location": "Main Academic Block (Side View)",
+      "summary": "Exterior wall paint peeling with visible water stains",
+      "description": "Exterior wall paint is peeling with visible water stains.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_38.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 2,
+      "location": "Administrative Block",
+      "summary": "Water accumulated near entrance after rain",
+      "description": "Water has accumulated near the entrance after heavy rain, making it difficult for students to walk.",
+      "is_safety_critical": false
+    },
+    {
+      "file": "srm_issue_39.png",
+      "hazard_type": "waterlogging",
+      "category": "civil",
+      "severity": 3,
+      "location": "SRM Main Gate",
+      "summary": "Potholes and waterlogging at main gate",
+      "description": "Huge potholes and water accumulation near the main gate after rain, causing inconvenience.",
+      "is_safety_critical": false
+    }
+  ]
+}

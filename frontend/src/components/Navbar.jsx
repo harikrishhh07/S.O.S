@@ -45,17 +45,17 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link to="/" className="text-gray-600 hover:text-red-600 transition-colors">Feed</Link>
+          <Link to="/" className="nav-link text-gray-600 hover:text-red-600 transition-colors" data-cursor="link">Feed</Link>
           {(user.role === 'student' || user.role === 'authority') && (
-            <Link to="/report/new" className="btn-primary text-sm py-1.5 px-3">+ Report Hazard</Link>
+            <Link to="/report/new" className="btn-primary text-sm py-1.5 px-3" data-cursor="link" data-magnetic="0.35">+ Report Hazard</Link>
           )}
-          {user.role === 'authority' && (
-            <Link to="/authority" className="text-gray-600 hover:text-red-600">My Queue</Link>
+          {(user.role === 'authority' || user.role === 'admin') && (
+            <Link to="/authority" className="nav-link text-gray-600 hover:text-red-600" data-cursor="link">Queue</Link>
           )}
           {user.role === 'admin' && (
-            <Link to="/admin" className="text-gray-600 hover:text-red-600">Admin</Link>
+            <Link to="/admin" className="nav-link text-gray-600 hover:text-red-600" data-cursor="link">Admin</Link>
           )}
-          <Link to="/my-reports" className="text-gray-600 hover:text-red-600">My Reports</Link>
+          <Link to="/my-reports" className="nav-link text-gray-600 hover:text-red-600" data-cursor="link">My Reports</Link>
         </div>
 
         {/* Right side */}
@@ -124,7 +124,7 @@ export default function Navbar() {
         <div className="md:hidden bg-white border-t px-4 py-3 space-y-2">
           <Link to="/" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>Feed</Link>
           <Link to="/report/new" className="block py-2 text-sm font-semibold text-red-600" onClick={() => setMobileOpen(false)}>+ Report Hazard</Link>
-          {user.role === 'authority' && <Link to="/authority" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>My Queue</Link>}
+          {(user.role === 'authority' || user.role === 'admin') && <Link to="/authority" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>Queue</Link>}
           {user.role === 'admin' && <Link to="/admin" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>Admin</Link>}
           <Link to="/my-reports" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>My Reports</Link>
           <button onClick={handleLogout} className="block py-2 text-sm text-red-600">Logout</button>

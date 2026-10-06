@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
@@ -9,12 +9,19 @@ import ReportDetailPage from './pages/ReportDetailPage'
 import MyReportsPage from './pages/MyReportsPage'
 import AuthorityDashboard from './pages/AuthorityDashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import PageTransition from './components/PageTransition'
 
 function Layout({ children }) {
+  const location = useLocation()
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main>{children}</main>
+      {/* key forces PageTransition to remount (re-animate) on route change */}
+      <main>
+        <PageTransition key={location.pathname}>
+          {children}
+        </PageTransition>
+      </main>
     </div>
   )
 }

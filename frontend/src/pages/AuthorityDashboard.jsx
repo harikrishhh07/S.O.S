@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { reportsAPI } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { SeverityBadge, StatusBadge, CriticalBanner, Spinner, EmptyState } from '../components/UI'
+import WeeklyDigestCard from '../components/WeeklyDigestCard'
 import toast from 'react-hot-toast'
 import { List, LayoutGrid, Upload, ChevronRight } from 'lucide-react'
 
@@ -27,13 +28,15 @@ export default function AuthorityDashboard() {
 
   const fetchReports = () => {
     setLoading(true)
-    reportsAPI.list({ department: user?.department, page_size: 100, sort: 'priority' })
+    const params = { page_size: 100, sort: 'priority' }
+    if (user?.role !== 'admin' && user?.department) params.department = user.department
+    reportsAPI.list(params)
       .then(r => setReports(r.data.items))
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load the queue'))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchReports() }, [])
+  useEffect(() => { if (user) fetchReports() }, [user])
 
   const handleStatusUpdate = async () => {
     if (!selected || !newStatus) return
@@ -87,8 +90,8 @@ export default function AuthorityDashboard() {
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Authority Queue</h1>
-          <p className="text-sm text-gray-500">{user?.department} Department · {reports.length} reports</p>
+          <h1 className="text-xl font-bold text-gray-900">{user?.role === 'admin' ? 'Administrator Queue' : 'Authority Queue'}</h1>
+          <p className="text-sm text-gray-500">{user?.role === 'admin' ? 'All departments' : `${user?.department} Department`} · {reports.length} reports</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setView('kanban')} className={`p-2 rounded-lg border ${view === 'kanban' ? 'bg-red-50 border-red-200 text-red-600' : 'text-gray-500'}`}>
@@ -98,6 +101,10 @@ export default function AuthorityDashboard() {
             <List size={16} />
           </button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <WeeklyDigestCard />
       </div>
 
       {/* Safety critical pinned */}

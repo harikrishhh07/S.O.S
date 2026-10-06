@@ -223,6 +223,41 @@ class TestDuplicateDetector:
         b = [0.0, 1.0]
         assert _cosine_similarity(a, b) == pytest.approx(0.0, abs=1e-5)
 
+
+def test_digest_falls_back_when_gemini_model_unavailable(monkeypatch):
+    import asyncio
+    from app.services import digest
+    import app.core.gemini as gemini
+
+    monkeypatch.setattr(digest.settings, "gemini_api_key", "fake-key")
+    monkeypatch.setattr(digest, "_collect_week_data", lambda db: {
+        "period": "01 Oct – 08 Oct 2026",
+        "total_reports": 3,
+        "resolved": 2,
+        "open": 1,
+        "safety_critical": 1,
+        "avg_resolution_hours": 6.5,
+        "top_building": "Main Block",
+        "top_building_count": 2,
+        "top_building_main_issue": "lighting_issue",
+        "top_hazard_type": "lighting_issue",
+        "top_hazard_count": 2,
+        "needs_attention_dept": "electrical_services",
+    })
+
+    class BrokenModel:
+        def generate_content(self, *args, **kwargs):
+            raise ValueError("404 models/gemini-1.5-flash is not found")
+
+    monkeypatch.setattr(gemini.genai, "GenerativeModel", lambda *args, **kwargs: BrokenModel())
+
+    result = asyncio.run(digest.generate_weekly_digest(None))
+
+    assert "error" not in result
+    assert result["week_summary"]
+    assert result["stats"]["total_reports"] == 3
+    assert result["top_issue"]["title"] == "lighting_issue"
+
     def test_duplicate_threshold_constant(self):
         from app.services.duplicate_detector import DUPLICATE_THRESHOLD, POSSIBLE_THRESHOLD
         assert DUPLICATE_THRESHOLD == 0.85

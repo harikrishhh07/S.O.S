@@ -2,10 +2,36 @@ import { useState, useEffect, useCallback } from 'react'
 import { reportsAPI, locationsAPI } from '../api/client'
 import ReportCard from '../components/ReportCard'
 import { ReportCardSkeleton, EmptyState } from '../components/UI'
+import { usePageAnimations } from '../animations/usePageAnimations'
 import { Search, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const STATUSES = ['reported', 'assigned', 'in_progress', 'pending_confirmation', 'resolved', 'reopened']
-const CATEGORIES = ['electrical', 'civil', 'security', 'other']
+const CATEGORIES = [
+  { id: 'electrical_services',        label: 'Electrical Services' },
+  { id: 'civil_plumbing_services',    label: 'Civil & Plumbing' },
+  { id: 'security_services',          label: 'Security Services' },
+  { id: 'fire_safety_services',       label: 'Fire & Safety' },
+  { id: 'housekeeping_services',      label: 'Housekeeping' },
+  { id: 'hvac_ac_services',           label: 'HVAC / AC' },
+  { id: 'it_telecom_services',        label: 'IT & Telecom' },
+  { id: 'facility_services',          label: 'Facility Services' },
+  { id: 'hostel_services',            label: 'Hostel Services' },
+  { id: 'transport_services',         label: 'Transport' },
+  { id: 'transport_parking',          label: 'Transport & Parking' },
+  { id: 'medical_health_services',    label: 'Medical / Health' },
+  { id: 'mess_food_services',         label: 'Mess / Food' },
+  { id: 'laundry_services',           label: 'Laundry' },
+  { id: 'waste_management',           label: 'Waste Management' },
+  { id: 'landscaping_campus',         label: 'Landscaping' },
+  { id: 'library_services',           label: 'Library' },
+  { id: 'sports_recreation',          label: 'Sports & Recreation' },
+  { id: 'labs_technical',             label: 'Laboratories' },
+  { id: 'procurement_stores',         label: 'Procurement / Stores' },
+  { id: 'architect_services',         label: 'Architect Services' },
+  { id: 'environment_sustainability', label: 'Environment & Sustainability' },
+  { id: 'events_campus_facilities',   label: 'Events & Facilities' },
+  { id: 'student_admin_services',     label: 'Student / Admin Services' },
+]
 const SORTS = [
   { value: 'priority', label: '🔥 Priority' },
   { value: 'newest', label: '🕐 Newest' },
@@ -21,6 +47,8 @@ export default function HomePage() {
   const [filters, setFilters] = useState({ status: '', category: '', building: '', sort: 'priority' })
   const [locations, setLocations] = useState([])
   const [showFilters, setShowFilters] = useState(false)
+
+  const containerRef = usePageAnimations({ hero: true, scroll: true })
 
   useEffect(() => {
     locationsAPI.list().then(r => setLocations(r.data)).catch(() => {})
@@ -53,16 +81,17 @@ export default function HomePage() {
   const buildings = [...new Set(locations.map(l => l.building))]
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div ref={containerRef} className="max-w-2xl mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Campus Hazard Feed</h1>
-          <p className="text-sm text-gray-500">{total} report{total !== 1 ? 's' : ''} found</p>
+          <h1 className="anim-hero-title text-xl font-bold text-gray-900">Campus Hazard Feed</h1>
+          <p className="anim-hero-sub text-sm text-gray-500">{total} report{total !== 1 ? 's' : ''} found</p>
         </div>
         <button
+          data-cursor="link"
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border transition-colors ${
+          className={`anim-hero-cta flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border transition-colors ${
             showFilters ? 'bg-red-50 border-red-200 text-red-600' : 'border-gray-200 text-gray-600 hover:border-gray-300'
           }`}
         >
@@ -72,10 +101,11 @@ export default function HomePage() {
       </div>
 
       {/* Sort pills */}
-      <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+      <div className="anim-hero-item flex gap-2 mb-3 overflow-x-auto pb-1">
         {SORTS.map(s => (
           <button
             key={s.value}
+            data-cursor="link"
             onClick={() => setFilter('sort')(s.value)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               filters.sort === s.value
@@ -90,30 +120,30 @@ export default function HomePage() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="card mb-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="card mb-4 grid grid-cols-2 sm:grid-cols-3 gap-3" data-reveal="scale">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-            <select className="input text-xs" value={filters.status} onChange={e => setFilter('status')(e.target.value)}>
+            <select className="input text-xs" data-cursor="link" value={filters.status} onChange={e => setFilter('status')(e.target.value)}>
               <option value="">All statuses</option>
               {STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
-            <select className="input text-xs" value={filters.category} onChange={e => setFilter('category')(e.target.value)}>
+            <select className="input text-xs" data-cursor="link" value={filters.category} onChange={e => setFilter('category')(e.target.value)}>
               <option value="">All categories</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Building</label>
-            <select className="input text-xs" value={filters.building} onChange={e => setFilter('building')(e.target.value)}>
+            <select className="input text-xs" data-cursor="link" value={filters.building} onChange={e => setFilter('building')(e.target.value)}>
               <option value="">All buildings</option>
               {buildings.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
           <div className="col-span-2 sm:col-span-3">
-            <button className="text-xs text-red-600 hover:underline" onClick={() => {
+            <button data-cursor="link" className="text-xs text-red-600 hover:underline" onClick={() => {
               setFilters({ status: '', category: '', building: '', sort: 'priority' }); setPage(1)
             }}>
               Clear all filters
@@ -122,8 +152,8 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Report list */}
-      <div className="space-y-3">
+      {/* Report list — batch reveal */}
+      <div className="space-y-3" data-reveal-batch>
         {loading
           ? Array.from({ length: 5 }).map((_, i) => <ReportCardSkeleton key={i} />)
           : reports.length === 0
@@ -134,8 +164,9 @@ export default function HomePage() {
 
       {/* Pagination */}
       {pages > 1 && (
-        <div className="flex items-center justify-center gap-3 mt-6">
+        <div className="flex items-center justify-center gap-3 mt-6" data-reveal="fade">
           <button
+            data-cursor="link"
             disabled={page === 1}
             onClick={() => setPage(p => p - 1)}
             className="p-2 rounded-lg border disabled:opacity-40 hover:bg-gray-50"
@@ -144,6 +175,7 @@ export default function HomePage() {
           </button>
           <span className="text-sm text-gray-600">Page {page} of {pages}</span>
           <button
+            data-cursor="link"
             disabled={page === pages}
             onClick={() => setPage(p => p + 1)}
             className="p-2 rounded-lg border disabled:opacity-40 hover:bg-gray-50"

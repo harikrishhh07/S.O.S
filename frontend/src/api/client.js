@@ -39,6 +39,7 @@ export const reportsAPI = {
   list: (params) => api.get('/reports', { params }),
   mine: () => api.get('/reports/mine'),
   get: (id) => api.get(`/reports/${id}`),
+  delete: (id) => api.delete(`/reports/${id}`),
   create: (formData) => api.post('/reports', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
@@ -68,6 +69,17 @@ export const locationsAPI = {
 // ── Analytics ─────────────────────────────────────────────────────────────────
 export const analyticsAPI = {
   summary: () => api.get('/analytics/summary'),
+  digest: () => api.get('/analytics/digest'),
+  generateDigest: () => api.post('/analytics/digest/generate'),
+}
+
+// ── Location Inference (Feature 2) ────────────────────────────────────────────
+export const locationInferenceAPI = {
+  inferFromImage: (imageFile) => {
+    const fd = new FormData()
+    fd.append('image', imageFile)
+    return api.post('/reports/infer-location', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+  },
 }
 
 export default api

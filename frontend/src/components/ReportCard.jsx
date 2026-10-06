@@ -3,6 +3,7 @@ import { MapPin, Clock, Flame, RotateCcw } from 'lucide-react'
 import { SeverityBadge, StatusBadge, CategoryBadge, PriorityBar, CriticalBanner } from './UI'
 import { reportsAPI } from '../api/client'
 import { useState } from 'react'
+import { useCardTilt } from '../animations/useCardTilt'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 
@@ -11,6 +12,7 @@ export default function ReportCard({ report, onHypeChange }) {
   const [hypeCount, setHypeCount] = useState(report.hype_count)
   const [hyped, setHyped] = useState(report.current_user_hyped)
   const [loading, setLoading] = useState(false)
+  const tiltRef = useCardTilt({ maxTilt: 5, scale: 1.015 })
 
   const toggleHype = async (e) => {
     e.preventDefault()
@@ -49,7 +51,11 @@ export default function ReportCard({ report, onHypeChange }) {
 
   return (
     <Link to={`/reports/${report.id}`} className="block">
-      <div className="card hover:border-red-200 hover:shadow-md transition-all cursor-pointer">
+      <div
+        ref={tiltRef}
+        data-cursor="view"
+        className="card hover:border-red-200 hover:shadow-md transition-shadow cursor-pointer"
+      >
         {/* Safety critical banner */}
         {report.is_safety_critical && (
           <div className="mb-2">
@@ -61,11 +67,13 @@ export default function ReportCard({ report, onHypeChange }) {
         <div className="flex items-start gap-3">
           {/* Thumbnail */}
           {report.image_path && (
-            <img
-              src={`http://localhost:8000/${report.image_path}`}
-              alt="hazard"
-              className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-100"
-            />
+            <div className="overflow-hidden rounded-lg flex-shrink-0 border border-gray-100 w-16 h-16">
+              <img
+                src={`http://localhost:8000/${report.image_path}`}
+                alt="hazard"
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+              />
+            </div>
           )}
 
           <div className="flex-1 min-w-0">
@@ -107,6 +115,8 @@ export default function ReportCard({ report, onHypeChange }) {
           {/* Hype button */}
           <button
             onClick={toggleHype}
+            data-cursor="link"
+            data-magnetic="0.25"
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all
               ${hyped
                 ? 'bg-red-100 text-red-600 hover:bg-red-200'
